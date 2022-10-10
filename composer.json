@@ -1,0 +1,8 @@
+{
+    "require": {
+        "phpunit/phpunit": "^9.5",
+        "ext-gd": "*",
+        "phpoffice/phpspreadsheet": "^1.23",
+        "sergeytsalkov/meekrodb": "^2.4"
+    }
+}
