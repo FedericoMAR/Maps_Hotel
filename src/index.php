@@ -1,31 +1,35 @@
 <?php
-require __DIR__ . '/check.php';
-require __DIR__ . '/openMaps.php';
-require __DIR__ . '/fileHandling.php';
+require __DIR__ . '\backend\check.php';
+require __DIR__ . '\backend\openMaps.php';
+require __DIR__ . '\backend\fileHandling.php';
+require __DIR__ . '\backend\tabsHandler.php';
 
-$fileHandler = new FileHandling("locationSaved.txt");
-if (isset($_POST["submit1"])) {
-    $check = new Place($_POST["city"], $_POST["country"]);
-    if ($check->run()) {
-        $fileHandler->writeLocationOnFile($_POST["country"], $_POST["city"], $_POST["submit1"], $check->getCoordinates()); //should work
+$file = "locationSaved.txt";
+$file_handler = new FileHandling($file);
+//this 'if' allows me to store the location inserted in the form by the user in locationSaved.txt
+if (isset($_POST["submit1"])) { //submit1 is held inside index.html
+    $check_location = new Place($_POST["city"], $_POST["country"]);
+
+    if ($check_location->run()) {
+        $file_handler->writeLocationOnFile($_POST["country"], $_POST["city"], $check_location->getCoordinates()); 
         header("Location: frontend/choice.html");
     } else {
         header("Location: frontend/index.html");
         //dare messaggio di errore
     }
-} else if (isset($_POST["submit2"])) {
-    if (isset($_POST["position"])) {
-        $maps = new OpenMaps($fileHandler->getCoordinatesFromFile("locationSaved.txt")); //it should read the coordinates from the file, might be wrong
-        header("Location: " . $maps->getURL());
+    //this 'if' reads data from locationSaved.txt and redirects to third-party webpages giving them those data
+} else if (isset($_POST["submit2"])) { //submit2 is held inside choice.html
+    $tabs_handler = new tabsHandler();
+    if (isset($_POST["hotel"]) && isset($_POST["position"])) {
+        $maps = new OpenMaps($file_handler->getCoordinatesFromFile($file));
+        $tabs_handler->runEverything($file_handler->getCityFromFile($file), $file_handler->getCountryFromFile($file), $maps->getURL());
+    } else if (isset($_POST["position"])) {
+        $maps = new OpenMaps($file_handler->getCoordinatesFromFile($file));
+        $tabs_handler->showMaps($maps->getURL());
     } else if (isset($_POST["hotel"])) {
-        //do what hotels do
-    } else if (isset($_POST["hotel"]) || isset($_POST["position"])) {
-        $maps = new OpenMaps($fileHandler->getCoordinatesFromFile("locationSaved.txt")); //it should read the coordinates from the file
-        header("Location: " . $maps->getURL());
-        //do what hotels do
+        $tabs_handler->showHotels($file_handler->getCityFromFile($file), $file_handler->getCountryFromFile($file));
+    } else {
+        header("Location: frontend/index.html");
+        //dare messaggio di errore
     }
-}
-else{
-    header("Location: frontend/index.html");
-    //dare messaggio di errore
 }
